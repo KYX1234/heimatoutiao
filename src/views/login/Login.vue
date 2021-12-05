@@ -30,6 +30,7 @@
                 placeholder="请输入短信验证码"
                 left-icon="comment-circle-o"
                 maxlength=6
+                type="number"
                 :rules="formRules.code"
             >
                 <template #button>
@@ -93,7 +94,12 @@ export default {
             try {
                 const { data: res } = await loginAPI(this.form)
                 console.log(res)
-                this.$toast.success("登录成功")
+                if (res.message === "OK") {
+                    this.$toast.success("登录成功")
+                    this.$store.commit("setToken", res.data)
+                    this.$router.push("/")
+                }
+
             } catch (err) {
                 this.$toast({
                     message: '登录失败',
@@ -138,7 +144,7 @@ export default {
                 })
             }
             //无论成功还是失败，还原按钮状态
-            this.isSendSmsButton = true
+            this.isSendSmsButton = false
 
         }
     }
