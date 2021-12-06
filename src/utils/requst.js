@@ -1,34 +1,24 @@
 //封装请求路径axios
-import axios from 'axios';
-
+import axios from 'axios'
+//非组件模块中获取store需要单独加载
+import store from '../store'
 const requst = axios.create({
 	baseURL: 'http://www.liulongbin.top:8000'
-});
+})
 
-export default requst;
+export default requst
 
-// //请求拦截器
-// axios.interceptors.request.use(
-// 	config => {
-// 		// 展示 loading 效果
-// 		this.$toast.loading({
-// 			message: '加载中...', // 文本内容
-// 			duration: 0 // 展示时长(ms)，值为 0 时，toast 不会消失
-// 		});
-// 		return config;
-// 	},
-// 	error => {
-// 		return Promise.reject(error);
-// 	}
-// );
-// // 响应拦截器
-// axios.interceptors.response.use(
-// 	response => {
-// 		// 隐藏 loading 效果
-// 		this.$toast.clear();
-// 		return response;
-// 	},
-// 	error => {
-// 		return Promise.reject(error);
-// 	}
-// );
+//请求拦截器
+requst.interceptors.request.use(
+	config => {
+		const { usertoken } = store.state
+		if (usertoken) {
+			config.headers.Authorization = `Bearer ${usertoken.token}`
+		}
+		//处理完要返回config，不然请求发布出去
+		return config
+	},
+	error => {
+		return Promise.reject(error)
+	}
+)

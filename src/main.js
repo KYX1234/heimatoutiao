@@ -5,6 +5,8 @@ import store from './store';
 //vant组件库
 import Vant from 'vant';
 import 'vant/lib/index.css';
+//阿里图标库
+import '@/css/iconfont.css';
 //全局样式
 import '@/styles/index.less';
 //注册vant组件

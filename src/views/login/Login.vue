@@ -1,60 +1,25 @@
 <template>
     <div class="login-container">
-        <van-nav-bar
-            title="注册 / 登录"
-            class=".van-nav-bar"
-        />
+        <van-nav-bar title="注册 / 登录" class=".van-nav-bar" />
         <!-- 登录表单,使用toast定制，需要关闭本身的红色提示 -->
-        <van-form
-            @submit="onLogin"
-            @failed="onFailed"
-            ref="login-from"
-            :show-error="false"
-            :show-error-message="false"
-            :validate-first="true"
-        >
-            <van-field
-                v-model="form.mobile"
-                label="手机号"
-                name="mobile"
-                placeholder="请输入手机号"
-                left-icon="phone-circle-o"
-                maxlength=11
-                :rules="formRules.mobile"
-            />
-            <van-field
-                v-model="form.code"
-                center
-                clearable
-                label="短信验证码"
-                placeholder="请输入短信验证码"
-                left-icon="comment-circle-o"
-                maxlength=6
-                type="number"
-                :rules="formRules.code"
-            >
+        <van-form @submit="onLogin" @failed="onFailed" ref="login-from"
+                  :show-error="false" :show-error-message="false" :validate-first="true">
+            <van-field v-model="form.mobile" label="手机号" name="mobile"
+                       placeholder="请输入手机号" left-icon="phone-circle-o" maxlength=11
+                       :rules="formRules.mobile" />
+            <van-field v-model="form.code" center clearable label="短信验证码"
+                       placeholder="请输入短信验证码" left-icon="comment-circle-o" maxlength=6
+                       type="number" :rules="formRules.code">
                 <template #button>
-                    <van-count-down
-                        :time="1000*5"
-                        format=" ss s"
-                        v-if="isCountShow"
-                        @finish="isCountShow=false"
-                    />
-                    <van-button
-                        v-else
-                        :disabled="isSendSmsButton"
-                        size="small"
-                        type="primary"
-                        @click.prevent="onSendSms"
-                    >发送验证码</van-button>
+                    <van-count-down :time="1000*5" format=" ss s" v-if="isCountShow"
+                                    @finish="isCountShow=false" />
+                    <van-button v-else :disabled="isSendSmsButton" size="small"
+                                type="primary" @click.prevent="onSendSms">发送验证码
+                    </van-button>
                 </template>
             </van-field>
             <div style="margin: 16px">
-                <van-button
-                    block
-                    type="info"
-                    class="login-btn"
-                >登录
+                <van-button block type="info" class="login-btn">登录
                 </van-button>
             </div>
         </van-form>
@@ -97,7 +62,7 @@ export default {
                 if (res.message === "OK") {
                     this.$toast.success("登录成功")
                     this.$store.commit("setToken", res.data)
-                    this.$router.push("/")
+                    this.$router.push("my")
                 }
 
             } catch (err) {
@@ -125,7 +90,7 @@ export default {
                 //按钮禁灰，防止多次点击
                 this.isSendSmsButton = true
                 //发送验证码请求
-                const { data: res } = await sendSmsAPI(this.form.mobile)
+                await sendSmsAPI(this.form.mobile)
                 //倒计时
                 this.isCountShow = true
             } catch (err) {

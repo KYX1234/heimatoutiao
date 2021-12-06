@@ -1,91 +1,107 @@
 <template>
     <div class="my-container">
-        <van-cell
-            center
-            class="head"
-            :border="false"
-        >
-            <van-image
-                class="avatar"
-                slot="icon"
-                width="66"
-                height="66"
-                round
-                fit="cover"
-                src="https://img02.sogoucdn.com/app/a/100520093/ca86e620b9e623ff-f4709b64c5c0ee80-c9561a7270a11ea4610f1a7fa33e083d.jpg"
-            />
-            <template v-slot:error>加载失败</template>
-            <div slot="title">哈哈哈</div>
-            <van-button
-                round
-                type="default"
-                size="small"
-            >编辑资料</van-button>
-        </van-cell>
-        <!-- 计数面板 -->
-        <van-grid
-            class="count-panel"
-            :border="false"
-        >
-            <van-grid-item>
-                <div class="span">0</div>
-                <div class="text">头条</div>
-            </van-grid-item>
-            <van-grid-item>
-                <div class="span">0</div>
-                <div class="text">关注</div>
+        <van-cell-group v-if="usertoken">
+            <van-cell :border="false" center class="head">
+                <van-image
+                    :src="user.photo"
+                    class="avatar"
+                    fit="cover"
+                    height="66"
+                    round
+                    slot="icon"
+                    width="66"
+                />
+                <template v-slot:error>加载失败</template>
+                <div slot="title">{{ user.name }}</div>
+                <van-button round size="small" type="default">编辑资料</van-button>
+            </van-cell>
+            <!-- 计数面板 -->
+            <van-grid :border="false" class="count-panel">
+                <van-grid-item>
+                    <div class="span">{{ user.art_count }}</div>
+                    <div class="text">头条</div>
+                </van-grid-item>
+                <van-grid-item>
+                    <div class="span">{{ user.follow_count }}</div>
+                    <div class="text">关注</div>
+                </van-grid-item>
+                <van-grid-item>
+                    <div class="span">{{ user.fans_count }}</div>
+                    <div class="text">粉丝</div>
+                </van-grid-item>
+                <van-grid-item>
+                    <div class="span">{{ user.like_count }}</div>
+                    <div class="text">获赞</div>
+                </van-grid-item>
+            </van-grid>
+        </van-cell-group>
+        <!-- 未登录 -->
+        <div class="not-login" v-else>
+            <div @click="onLogin" class="not-login-border">
+                <van-icon class-prefix="iconfont" name="shouji" size="45" />
+                <div class="text">点我登录</div>
+            </div>
+        </div>
+        <van-grid :column-num="2" class="nav mb-4">
+            <van-grid-item icon="star-o" text="收藏" />
 
-            </van-grid-item>
-            <van-grid-item>
-
-                <div class="span">0</div>
-                <div class="text">粉丝</div>
-            </van-grid-item>
-            <van-grid-item>
-                <div class="span">0</div>
-                <div class="text">获赞</div>
-            </van-grid-item>
-        </van-grid>
-        <van-grid
-            :column-num="2"
-            class="nav mb-4"
-        >
-            <van-grid-item
-                icon="star-o"
-                text="收藏"
-            />
-
-            <van-grid-item
-                icon="clock-o"
-                text="历史"
-            />
+            <van-grid-item icon="clock-o" text="历史" />
         </van-grid>
         <van-cell-group>
-            <van-cell
-                title="编辑资料"
-                is-link
-                icon="edit"
-                to=""
-            />
-            <van-cell
-                class="mb-4"
-                title="小思同学"
-                is-link
-                icon="more-o"
-                to=""
-            />
-            <van-cell
-                title="退出登录"
-                class="login-exit"
-            />
+            <van-cell icon="edit" is-link title="编辑资料" to />
+            <van-cell class="mb-4" icon="more-o" is-link title="小思同学" to />
+            <van-cell @click="onLoginout" class="login-exit" title="退出登录" v-if="usertoken" />
         </van-cell-group>
     </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+import { getUserinfoAPI } from '@/api/userAPI.js';
 export default {
-    name: "My"
-}
+    name: 'My',
+    data() {
+        return {
+            user: {} //登录用户的个人信息
+        };
+    },
+    computed: {
+        //引入vuex容器内的token用来判断是否登录，temple显示响应的内容
+        ...mapState(['usertoken'])
+    },
+    created() {
+        this.loadUserinfo();
+    },
+
+    methods: {
+        //提示用户退出
+        onLoginout() {
+            this.$dialog
+                .confirm({
+                    title: '退出登录',
+                    message: '是否确认退出?'
+                })
+                .then(() => {
+                    //确认执行这里
+                    //清除token信息
+                    this.$store.commit('setToken', null);
+                })
+                .catch(() => {
+                    //取消执行这里
+                    // on cancel
+                });
+        },
+        //未登录状态点击登录
+        onLogin() {
+            this.$router.push('login');
+        },
+        async loadUserinfo() {
+            const { data } = await getUserinfoAPI();
+            // console.log(data);
+            this.user = data.data;
+        }
+    }
+};
 </script>
 
 <style lang="less" scoped>
@@ -100,6 +116,27 @@ export default {
         }
         .avatar {
             border: 2px solid #fff;
+        }
+    }
+    .not-login {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #007bff;
+        height: 216px;
+        .not-login-border {
+            flex-direction: column;
+            justify-content: center;
+            display: flex;
+            width: 100px;
+            height: 100px;
+            border-radius: 50px;
+            border: 2px solid #fff;
+            align-items: center;
+            .text {
+                color: #fff;
+                font-size: 12px;
+            }
         }
     }
     .count-panel {
