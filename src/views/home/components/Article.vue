@@ -1,14 +1,31 @@
 <template>
     <div class="article-container">
-        <van-list v-model="loading" :finished="finished" finished-text="没有更多了" @load="onLoad">
-            <van-cell v-for="(item,index) in acticleslist" :key="index" :title="item.title" />
-        </van-list>
+        <van-empty description="没有数据~" v-if="showActive" />
+        <van-pull-refresh
+            v-model="isRefreshLoading"
+            @refresh="onRefresh"
+            :disabled="finished"
+            :success-text="successtext"
+            success-duration="1000"
+        >
+            <van-list
+                v-model="loading"
+                :finished="finished"
+                finished-text="没有更多了"
+                :immediate-check="false"
+                @load="onLoad"
+            >
+                <ActicleItem v-for="(item,index) in acticleslist" :key="index" :article="item"></ActicleItem>
+            </van-list>
+        </van-pull-refresh>
     </div>
 </template>
 
 <script>
 import { getArticles } from '@/api/homeAPI.js';
+import ActicleItem from '@/components/aticle-item/Acticle-item.vue';
 export default {
+    components: { ActicleItem },
     name: 'ArtIcle',
     props: {
         channels: {
@@ -16,12 +33,18 @@ export default {
             required: true
         }
     },
+    created() {
+        this.onLoad();
+    },
     data() {
         return {
             acticleslist: [],
             loading: false, //当组件滚动到底部时，会触发 load 事件并将 loading 设置成 true数据更新完毕后，将 loading 设置成 false
             finished: false, //数据已全部加载完毕，则直接将 finished 设置成 true
-            timestamp: null
+            timestamp: Date.now(), //请求数据的时间戳
+            showActive: false, //空占位符
+            isRefreshLoading: false, //下拉刷新为true，关闭为false
+            successtext: ''
         };
     },
     methods: {
@@ -29,18 +52,43 @@ export default {
             // 1.请求获取数据
             const { data } = await getArticles({
                 channel_id: this.channels.id, //频道id
-                timestamp: this.timestamp || Date.now() //时间戳，请求新的推荐传当前时间戳，请求历史推荐传指定时间戳
+                timestamp: this.timestamp //时间戳，请求新的推荐传当前时间戳，请求历史推荐传指定时间戳
             });
-            console.log(data);
-            //2.数据存入list
-            this.acticleslist.push(...data.data.results);
-            //3.设置加载状态结束
-            this.loading = false;
-            //4.数据全部加载完毕
-            if (data.data.results.length) {
+            // console.log(data);
+            if (data.message === 'OK') {
+                //2.数据存入list
+                this.acticleslist.push(...data.data.results);
+                //3.设置加载状态结束
+                this.loading = false;
+                //将这次的时间戳记录下，用于下次传参
                 this.timestamp = data.data.pre_timestamp;
-            } else {
+                //如果请求数据为空，展示空占位符
+                if (data.data.results.length === '0') {
+                    this.showActive = true;
+                }
+            }
+            //4.数据全部加载完毕
+            if (data.data.pre_timestamp === null) {
                 this.finished = true;
+            }
+        },
+        //下拉刷新
+        async onRefresh() {
+            // 1.请求获取文章数据
+            const { data } = await getArticles({
+                channel_id: this.channels.id, //频道id
+                timestamp: this.timestamp
+            });
+            // 2.头部追加数据
+            if (data.message === 'OK') {
+                this.timestamp = data.data.pre_timestamp;
+                this.acticleslist.unshift(...data.data.results);
+                this.successtext = `更新了${data.data.results.length}条数据`;
+                // 2.将下拉刷新状态重置
+                this.isRefreshLoading = false;
+                if (data.data.pre_timestamp === null) {
+                    this.finished = true;
+                }
             }
         }
     }

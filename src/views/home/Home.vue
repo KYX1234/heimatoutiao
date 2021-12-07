@@ -11,7 +11,7 @@
             />
         </van-nav-bar>
         <!-- tab导航 -->
-        <van-tabs v-model="active">
+        <van-tabs v-model="active" class="channels-tab">
             <van-tab :key="item.id" :title="item.name" v-for="item in channels">
                 <!-- 文章列表组件 -->
                 <ArtIcle :channels="item"></ArtIcle>
@@ -79,6 +79,18 @@ export default {
                 /* WebKit browsers 适配谷歌 */
                 color: #fff;
             }
+        }
+    }
+    .channels-tab {
+        /deep/.van-tab {
+            border-right: 1px solid #edeff3;
+            border-bottom: 1px solid #edeff3;
+        }
+        /deep/ .van-tabs__line {
+            width: 15px;
+            height: 3px;
+            background-color: #3296fa;
+            bottom: 20px;
         }
     }
 }
