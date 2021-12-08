@@ -1,7 +1,7 @@
-import Vue from 'vue';
-import VueRouter from 'vue-router';
+import Vue from 'vue'
+import VueRouter from 'vue-router'
 
-Vue.use(VueRouter);
+Vue.use(VueRouter)
 // 路由表
 const routes = [
 	{
@@ -10,12 +10,18 @@ const routes = [
 		component: () => import('@/views/login/Login.vue')
 	},
 	{
+		path: '/search',
+		name: 'search',
+		component: () => import('@/views/search/Search.vue')
+	},
+	{
 		path: '/',
 		component: () => import('@/views/layout/Layout.vue'),
 		children: [
 			{
 				path: '', //默认子路由
 				name: 'home',
+
 				component: () => import('@/views/home/Home.vue')
 			},
 			{
@@ -35,12 +41,12 @@ const routes = [
 			}
 		]
 	}
-];
+]
 
 const router = new VueRouter({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes
-});
+})
 
-export default router;
+export default router

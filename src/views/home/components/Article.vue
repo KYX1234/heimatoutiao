@@ -1,5 +1,5 @@
 <template>
-    <div class="article-container">
+    <div class="article-container" ref="article">
         <van-empty description="没有数据~" v-if="showActive" />
         <van-pull-refresh
             v-model="isRefreshLoading"
@@ -14,6 +14,7 @@
                 finished-text="没有更多了"
                 :immediate-check="false"
                 @load="onLoad"
+                ref="articles"
             >
                 <ActicleItem v-for="(item,index) in acticleslist" :key="index" :article="item"></ActicleItem>
             </van-list>
@@ -44,10 +45,12 @@ export default {
             timestamp: Date.now(), //请求数据的时间戳
             showActive: false, //空占位符
             isRefreshLoading: false, //下拉刷新为true，关闭为false
-            successtext: ''
+            successtext: '',
+            scrollTop: 0
         };
     },
     methods: {
+        //获取更多数据
         async onLoad() {
             // 1.请求获取数据
             const { data } = await getArticles({
@@ -90,12 +93,29 @@ export default {
                     this.finished = true;
                 }
             }
+        },
+        handleScroll() {
+            this.scrollTop = this.$refs.article.scrollTop;
         }
+    },
+    mounted() {
+        this.$refs.article.addEventListener('scroll', this.handleScroll);
+    },
+    activated() {
+        this.$refs.article.scrollTop = this.scrollTop;
+    },
+    deactivated() {
+        this.$refs.article.removeEventListener('scroll', this.handleScroll);
     }
 };
 </script>
 
 <style lang="less" scoped>
+.item {
+    position: fixed;
+    top: 220px;
+    z-index: 22;
+}
 .article-container {
     position: fixed;
     left: 0;
